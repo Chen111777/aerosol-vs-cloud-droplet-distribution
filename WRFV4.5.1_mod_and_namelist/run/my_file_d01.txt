@@ -1,2 +1,0 @@
-+:h:8:ff1i01,ff1i02,ff1i03,ff1i04,ff1i05,ff1i06,ff1i07,ff1i08,ff1i09,ff1i10,ff1i11,ff1i12,ff1i13,ff1i14,ff1i15,ff1i16,ff1i17,ff1i18,ff1i19,ff1i20,ff1i21,ff1i22,ff1i23,ff1i24,ff1i25,ff1i26,ff1i27,ff1i28,ff1i29,ff1i30,ff1i31,ff1i32,ff1i33
-+:h:8:QCLOUD,ALT,PH,PHB,QNCCN,QRAIN,QVAPOR,QNCLOUD,T,P,PB,W,U,V
