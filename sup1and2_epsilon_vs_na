@@ -1,0 +1,157 @@
+clear; clc; close all
+paths = {'~/WRFV4.5.1/a50_exp2';...
+'~/WRFV4.5.1/a500_exp2';...
+'~/WRFV4.5.1/a2000_exp2';...
+'~/WRFV4.5.1/a10000_exp2';...
+'~/WRFV4.5.1/a50000_exp2'};
+aer_tick=[50,500,2000,10000,50000];
+expname = 'exp2';
+
+global hh af_lmt
+mnt_interval = 3;
+mnt_tick = 75:mnt_interval:135;
+nmnt = length(mnt_tick);
+InputFileName = ['lwcad_',expname,'_75to135.mat'];
+InterFileName = ['dat_sup1_',expname,'.mat'];
+OutFigName = ['sup1_',expname];
+len_aer = length(aer_tick);
+af_lmt=[0,0.4,0.7];
+nregion = length(af_lmt);
+%% prepare data for figure
+load(InputFileName)
+g=9.81;
+fstpath = [cell2mat(paths(1)),'/wrfbin_d01_0001-01-01_01:54:00'];
+phb = double(ncread(fstpath,'PHB'));
+php = double(ncread(fstpath,'PH'));
+ph = phb+php; % because ph merely varies with time and N_a
+[nx,~,nz]=size(ph);
+nz=nz-1;
+zz = squeeze(mean(mean(ph(:,:,2:end)+ph(:,:,1:end-1))/2)/g/1000); % unit: km
+hh = squeeze(mean(mean(ph(:,:,2:end)-ph(:,:,1:end-1)))/g); % unit: m
+clear phb php ph
+
+[dat_rm,dat_eps,dat_nd] =deal(nan(nmnt,nregion,len_aer));
+[test_dat,training_dat] = deal([]);
+for ia = 1:len_aer
+    ia
+    [dat_eps(:,:,ia),dat_rm(:,:,ia)] = func_3regions_eps(paths(ia),mnt_tick,ia,lwcad);
+end
+save(InterFileName,'hh','zz','dat_eps','dat_rm')
+min(squeeze(dat_rm(:,2,:)))
+min(squeeze(dat_rm(:,3,:)))
+%% Support - Figure 1 or 2
+load(InterFileName)
+hh = hh(:,1);
+len_aer=length(aer_tick);
+Y1 = zeros(len_aer,3,nregion);
+for ir=1:nregion
+    for ia = 1:len_aer        
+        dat = squeeze(dat_eps(:,ir,:));
+        Y1(ia,:,ir) = quantile(dat(:,ia),[0.25,0.5,0.75]); % above minimum epsilon, subplot 3
+    end
+end
+
+B = figure('position',[488,414.6,380,310]);
+func_fig_shade(aer_tick,Y1,[50,50000],'$N_{a} (cm^{-3})$','$\epsilon$')
+lgwd = {'$AF>0$';'$AF>0.4$';'$AF>0.7$'}; % legend content
+legend(lgwd,'Location','NorthEast','fontsize',12,'interpreter','latex')%,'position',[0.614,0.276,0.434,0.507]
+legend('boxoff')
+% print('-dpng',B,OutFigName,'-r450')
+%%
+function func_fig_shade(x,dat,xlmt,xlbl,ylbl)
+nregion = 3;
+para_xylbl = {'FontSize',16,'FontWeight','bold'};
+para_axis = {'linewidth',1,'FontName','Times New Roman','FontSize',12,'xtick',[10,100,1000,10^4,10^5,10^6]};
+clr_list = [60 64 91;223,122,94;130 178 154;244,241,222;240 201 134]/255;
+for i_l = 1:nregion
+    dati = squeeze(dat(:,:,i_l));
+    plot(x,dati(:,2),'-o','Color',clr_list(i_l,:),'LineWidth',2,'markersize',4);
+    y_shade=[dati(:,3);flipud(dati(:,1))];
+    x_shade = [x';flipud(x')];
+    hold on; fill(x_shade,y_shade,...
+       'm','FaceColor',clr_list(i_l,:),'FaceAlpha',0.15,...
+       'EdgeColor','none','handlevisibility','off');
+end
+box('on')
+xlim(xlmt)
+ylim([0.12,0.37])
+v = axis;
+if v(2)-v(1)>1000
+    xscl = 'log';
+else
+    xscl = 'linear';
+end
+if v(4)-v(3)>1000
+    yscl = 'log';
+else
+    yscl = 'linear';
+end
+set(gca,para_axis{:},'xscale',xscl,'yscale',yscl,...
+   'XMinorGrid','off','YMinorGrid','off')
+xlabel(xlbl,'interpreter','latex',para_xylbl{:})
+ylabel(ylbl,'interpreter','latex',para_xylbl{:})
+grid('on')
+end
+
+function [dat_eps,dat_rm] =func_3regions_eps(path1,mnt_tick,ia,lwcad)
+global af_lmt
+nmnt = length(mnt_tick);
+mnt_interval = mnt_tick(2)-mnt_tick(1);
+[nx,~,nz] = size(double(ncread([cell2mat(path1),'/wrfbin_d01_0001-01-01_00:00:00'],'ALT')));
+im = 0;
+nregion = length(af_lmt);
+[dat_eps,dat_rm]=deal(nan(nmnt,nregion));
+for mnt = mnt_tick
+    im = im+1;
+    ncpath = [cell2mat(path1),'/wrfbin_d01_0001-01-01_0',...
+        num2str(floor(mnt/60),'%01d'),':',num2str(mod(mnt,60),'%02d'),':00'];
+    [qc0,eps0,rm0,~,~] = func_get_pro(ncpath,nx,nz);
+    
+    %---------------lwcmax---------------%
+%     af = qc./repmat(max(max(qc,[],1),[],2),nx,nx);
+    %---------------lwcad----------------%
+    rho=1/double(ncread(ncpath,'ALT'));% m3/kg
+    lwc = qc0.*rho;
+    af = lwc./repmat(permute(lwcad(:,(mnt-mnt_tick(1)+mnt_interval)/mnt_interval,ia),[3,2,1]),nx,nx);
+    for ir = 1:nregion
+        icloud0 = qc0>10^-5 & af>af_lmt(ir);
+        dat_eps(im,ir) = func_ProfileAve(eps0,icloud0);
+        dat_rm(im,ir) = func_ProfileAve(rm0,icloud0);
+    end
+end
+end
+
+function [qc,eps,rm,sig,nd] = func_get_pro(ncpath,nx,nz)
+r = 2.^(1:1/3:35/3); % bin radius
+m = 4/3*pi.*r.*r.*r/10^9; % bin mass
+nbins = 33;
+[qc,nd,rm,sig] = deal(zeros(nx,nx,nz));
+for ibin=1:nbins
+    q=double(ncread(ncpath,['ff1i',num2str(ibin,'%02d')]));
+    qc = qc+q;
+    npdr=q./m(ibin); % 10^6 kg-1
+    rm = rm+npdr.*r(ibin);
+    nd = nd+npdr;
+end
+rm = rm./nd;
+icloud00 = qc>10^-5;
+for ibin=1:nbins
+    q=double(ncread(ncpath,['ff1i',num2str(ibin,'%02d')]));
+    q(~icloud00) = nan;
+    npdr=q./m(ibin);
+    sig = sig+npdr.*(rm-r(ibin)).^2;
+end
+sig = sqrt(sig./nd);
+eps = sig./rm;
+end
+
+function rsl = func_ProfileAve(var3dim,icloud0)
+global hh
+    var3dim(~icloud0) = 0;
+    numicloud = squeeze(sum(sum(icloud0)));
+    profile = squeeze(sum(sum(var3dim)))./numicloud;
+    h = hh;
+    h(isnan(profile)) = [];
+    profile(isnan(profile)) = [];
+    rsl = sum(h.*profile)./sum(h);
+end
