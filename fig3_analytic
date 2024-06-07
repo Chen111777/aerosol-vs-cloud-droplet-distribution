@@ -1,0 +1,115 @@
+clear
+G=10^6;
+t = 60*20;
+%-------initialize droplet spectrum---------------%
+nbins_r = 100;
+n_c=100;
+lmd_r = 2; % larger lmd_r, smaller r0_bar, smaller epslon0
+mu_r = 7; % larger mu_r, larger r0_bar, smaller epsilon0
+step_r = 5/(nbins_r-1);
+r0 = 2.^(0:step_r:5); % radius before growth, 1~64, unit: um
+col = 2.^(0+step_r/2:step_r:5+step_r/2)-...
+    2.^(0-step_r/2:step_r:5-step_r/2); % bin width for r
+nr0_over_col = r0.^mu_r.*exp(-lmd_r*r0); % gamma distribution
+n_r0 = n_c*nr0_over_col.*col/sum(nr0_over_col.*col);
+r0_bar = sum(n_r0.*r0)/n_c
+sigma0 = sqrt(sum(n_r0.*(r0-r0_bar).^2)/n_c);
+epsilon0 = sigma0/r0_bar
+%%
+%-------initialize PDF of S ---------------%
+nbins_s = 200;
+mu_tick = 2.^(-1:0.3:8); % lower limit determine the upper limit of epsilon_s
+lmd_tick = 2.^(2:0.3:15.5); % lower limit determine the upper limit of r_bar
+len_mu = length(mu_tick);
+len_lmd = length(lmd_tick);
+step_s = 5/(nbins_s-1);
+s = 10.^(-4:step_s:1);
+col_s = 10.^(-4+step_s/2:step_s:1+step_s/2)-...
+    10.^(-4-step_s/2:step_s:1-step_s/2); % bin width for r
+[record_eps_s,record_rbar,record_T1,record_T2] = deal(zeros(len_lmd,len_mu));
+imu = 0;
+for mu = mu_tick
+    imu = imu+1;
+    ilmd = 0;
+    for lmd = lmd_tick
+        ilmd = ilmd+1;
+        fs_over_col = s.^mu.*exp(-lmd*s); % gamma distribution
+        f_s = fs_over_col.*col_s/sum(fs_over_col.*col_s);
+        s_bar = sum(f_s.*s);
+        record_eps_s(ilmd,imu) = sqrt(sum(f_s.*(s-s_bar).^2))/s_bar;
+    %--------------------solve-----------------------%
+        r0_mat=repmat(r0*10^-4,nbins_s,1); % unit: cm
+        s_mat = repmat(s'/100,1,nbins_r);
+        r=sqrt(r0_mat.^2+2.*s_mat.*t./G);
+        r_bar_s = sum(n_r0.*r,2)/n_c; % Eq. 10
+        sigma2_s = sum(n_r0.*(r-r_bar_s).^2,2)/n_c; % Eq. 11
+        r_bar = sum(f_s'.*r_bar_s); % Eq.12
+        record_rbar(ilmd,imu) = r_bar;
+        record_T1(ilmd,imu) = sum(f_s'.*sigma2_s)./r_bar^2;
+        record_T2(ilmd,imu) = sum(f_s'.*(r_bar_s-r_bar).^2)./r_bar^2;
+    end
+end
+%%
+%--------epsilon vs. r_bar & epsilon_s, contour--------%
+eps1=sqrt(record_T1+record_T2);
+X = record_rbar*10^4;
+Y = record_eps_s;
+figure('position',[488,200,939.4,526]);
+pic_pcolor_epsilon(X,Y,eps1,4)
+pic_pcolor_epsilon(X,Y,record_T1,5)
+pic_pcolor_epsilon(X,Y,record_T2,6)
+
+v = axis;
+X = repmat(v(1):0.3:32.3,44,1);
+[~,b] = size(X);
+Y = repmat([0.09:0.02:0.95]',1,b);
+Z22 = r0_bar^4./X.^4*epsilon0^2;
+Z23 = Y.^2./4.*(1-r0_bar^2./X.^2).^2;
+eps2=sqrt(Z22+Z23);
+pic_pcolor_epsilon(X,Y,eps2,1)
+pic_pcolor_epsilon(X,Y,Z22,2)
+pic_pcolor_epsilon(X,Y,Z23,3)
+% print('-dpng',gcf,'analytical_result','-r450')
+
+%%
+function [cc]=pic_pcolor_epsilon(X,Y,Z1,i_p)
+pstn_list=[0.08,0.575,0.27,0.365;
+    0.39,0.575,0.27,0.365;
+    0.70,0.575,0.27,0.365;
+    0.08,0.10,0.27,0.365;
+    0.39,0.10,0.27,0.365;
+    0.70,0.10,0.27,0.365];
+titlewd = {'(a) Simplified ε';'(b) Simplified E_1';...
+    '(c) Simplified E_2';'(d) Verifying ε';...
+    '(e) Verifying E_1';'(f) Verifying E_2'} ;
+ax = subplot('position',pstn_list(i_p,:));
+para_xylbl = {'FontSize',16,'FontWeight','bold'};
+para_axis = {'linewidth',1,'FontName','Times New Roman','xtick',0:5:100};
+if i_p==1 || i_p==4
+    contour(X,Y,Z1,'showtext','on','LineWidth',1.5); 
+elseif i_p==2 || i_p==5
+    contour(X,Y,Z1,[0.0001,0.0002,0.0005,0.001,0.002,0.005,0.01,0.02,0.05,0.1],'showtext','on','LineWidth',1.5); 
+elseif i_p==3 || i_p==6
+    contour(X,Y,Z1,0.01:0.02:0.25,'showtext','on','LineWidth',1.5); 
+end
+
+v=axis;
+xlim([v(1),17])
+ylim([0.15,0.8])
+
+set(gca,para_axis{:},...
+    'FontSize',12)
+if i_p>3
+xlabel('$\overline{r} (\mu m)$','interpreter','latex',para_xylbl{:})
+end
+if i_p==1 || i_p==4
+ylabel('$\sigma_{S_{m}}/\overline{S}_{m}$','interpreter','latex',para_xylbl{:})
+end
+if i_p==2 || i_p==3 || i_p==5 || i_p==6
+    caxis([0,0.21])
+elseif i_p==1 || i_p==4
+    colormap(ax,'autumn')
+    caxis([0.1,0.4])
+end
+title(titlewd(i_p),'FontSize',14,'FontWeight','bold')
+end
