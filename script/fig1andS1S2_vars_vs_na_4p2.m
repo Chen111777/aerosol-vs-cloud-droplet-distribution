@@ -1,15 +1,15 @@
 clear; clc; close all
-paths = {'~/WRFV4.5.1/a50_exp2';'~/WRFV4.5.1/a500_exp2';...
-'~/WRFV4.5.1/a2000_exp2';'~/WRFV4.5.1/a5000_exp2';...
-'~/WRFV4.5.1/a10000_exp2';'~/WRFV4.5.1/a50000_exp2'}; % for fig. S1-S2
-% paths = {'~/WRFV4.5.1/a50';'~/WRFV4.5.1/a100';'~/WRFV4.5.1/a200';'~/WRFV4.5.1/a500';...
-% '~/WRFV4.5.1/a1000';'~/WRFV4.5.1/a2000';'~/WRFV4.5.1/a5000';...
-% '~/WRFV4.5.1/a10000';'~/WRFV4.5.1/a20000';'~/WRFV4.5.1/a50000'}; % for fig. 1
-aer_tick= [50,500,2000,5000,10000,50000]; % for fig. S1-S2
-% aer_tick= [50,100,200,500,1000,2000,5000,10000,20000,50000]; % for fig. 1
-aer_id = [1,4,6]; % for fig. S1-S2
-% aer_id = [1,7,10]; % for fig. 1
-expname = 'exp2';
+% paths = {'~/WRFV4.5.1/a50_exp3';'~/WRFV4.5.1/a500_exp3';...
+% '~/WRFV4.5.1/a2000_exp3';'~/WRFV4.5.1/a5000_exp3';...
+% '~/WRFV4.5.1/a10000_exp3';'~/WRFV4.5.1/a50000_exp3'}; % for fig. S1-S2
+paths = {'~/WRFV4.5.1/a50';'~/WRFV4.5.1/a100';'~/WRFV4.5.1/a200';'~/WRFV4.5.1/a500';...
+'~/WRFV4.5.1/a1000';'~/WRFV4.5.1/a2000';'~/WRFV4.5.1/a5000';...
+'~/WRFV4.5.1/a10000';'~/WRFV4.5.1/a20000';'~/WRFV4.5.1/a50000'}; % for fig. 1
+% aer_tick= [50,500,2000,5000,10000,50000]; % for fig. S1-S2
+aer_tick= [50,100,200,500,1000,2000,5000,10000,20000,50000]; % for fig. 1
+% aer_id = [1,4,6]; % for fig. S1-S2
+aer_id = [1,7,10]; % for fig. 1
+expname = 'exp1';
 
 global af_lmt pstn_list
 mnt_interval = 3;
@@ -71,8 +71,9 @@ lgwd = {'0.0$<$AF$\le$0.4';'0.4$<$AF$\le$0.7';'0.7$<$AF$\le$1.0';'0.0$<$AF$\le$1
 legend(lgwd,'fontsize',8.5,'position',[0.676,0.801,0.241,0.081],'interpreter','latex')
 legend('boxoff')
 func_fig_shade(aer_tick,ydat2,4,[50,50000],'$N_{a}$ (cm$^{-3}$)','$\overline{r} (\mu$m)')
-func_fig_shade(aer_tick,ydat3,6,[50,50000],'$N_{a}$ (cm$^{-3}$)','¦Å')
-ylim([0.14,0.4])%[0.12,0.35])
+func_fig_shade(aer_tick,ydat3,6,[50,50000],'$N_{a}$ (cm$^{-3}$)','  ')
+ylim([0.14,0.4])
+% ylim([0.12,0.35])
 func_fig_shade(aer_tick,ydat4,8,[50,50000],'$N_{a}$ (cm$^{-3}$)','$\sigma (\mu$m)')
 
 
@@ -80,7 +81,7 @@ func_fig_shade(aer_tick,ydat4,8,[50,50000],'$N_{a}$ (cm$^{-3}$)','$\sigma (\mu$m
 para_xylbl = {'FontSize',12,'interpreter','latex'};
 para_axis = {'linewidth',1,'FontName','Times New Roman',...
     'FontSize',10};
-xlb = {'$N_{c}$ (cm$^{-3})$';'$\overline{r} (\mu$m)';'¦Å';'$\sigma (\mu$m)'};
+xlb = {'$N_{c}$ (cm$^{-3})$';'$\overline{r} (\mu$m)';'  ';'$\sigma (\mu$m)'};
 nbwd = 'abcdefghijklmn';
 icol = 1;
 for irow = 1:4
@@ -106,7 +107,8 @@ for irow = 1:4
    xlabel(cell2mat(xlb(irow)),para_xylbl{:})
    box('on')
    grid('on')
-   ylim([0.7,3.1])%2.3
+   ylim([0.7,3.1])
+%    ylim([0.7,2.3])
    title(['(',nbwd(i_p),') '],'fontsize',15,...
        'units','normalized','position',[0.102,0.833,0],'FontWeight','bold');
    if i_p==1
@@ -124,7 +126,8 @@ end
 function func_fig_shade(xdat,ydat,i_p,xlmt,xlbl,ylbl)
 global pstn_list
 para_xylbl = {'FontSize',12,'interpreter','latex'};
-para_axis = {'linewidth',1,'FontName','Times New Roman','FontSize',10,'xtick',[10,100,1000,10^4,10^5,10^6]};
+para_axis = {'linewidth',1,'FontName','Times New Roman','FontSize',10,...
+    'xtick',[10,100,1000,10^4,10^5,10^6]};
 nbwd = 'abcdefghijklmn';
 clr_list = [223,122,94;227 216 183;130 178 154;60 64 91]/255;
 subplot('position',pstn_list(i_p,:))
@@ -170,7 +173,7 @@ nregion = 4;
 nmnt = length(mnt_tick);
 mnt_interval = mnt_tick(2)-mnt_tick(1);
 [nx,~,nz] = size(double(ncread([cell2mat(path1),'/wrfbin_d01_0001-01-01_00:00:00'],'ALT')));
-[dat_nd,dat_rbar,dat_eps]=deal(nan(nmnt,1,nregion));
+[dat_nd,dat_rbar,dat_eps,dat_sig]=deal(nan(nmnt,1,nregion));
 im = 0;
 for mnt = mnt_tick
     im = im+1;
@@ -205,10 +208,11 @@ r = 2.^(1:1/3:35/3); % bin radius
 m = 4/3*pi.*r.*r.*r/10^9; % bin mass
 nbins = 33;
 [qc,nd,rbar,sig] = deal(zeros(nx,nx,nz));
+    rho=1/double(ncread(ncfile,'ALT'));
 for ibin=1:nbins
     qc_bin=double(ncread(ncfile,['ff1i',num2str(ibin,'%02d')]));
     qc = qc+qc_bin;
-    nd_bin=qc_bin./m(ibin); % 10^6 kg-1
+    nd_bin=qc_bin./m(ibin).*rho; % cm-3
     rbar = rbar+nd_bin.*r(ibin);
     nd = nd+nd_bin;
 end
@@ -217,7 +221,7 @@ icloud = qc>10^-5;
 for ibin=1:nbins
     qc_bin=double(ncread(ncfile,['ff1i',num2str(ibin,'%02d')]));
     qc_bin(~icloud) = nan;
-    nd_bin=qc_bin./m(ibin);
+    nd_bin=qc_bin./m(ibin).*rho; % cm-3
     sig = sig+nd_bin.*(rbar-r(ibin)).^2;
 end
 sig = sqrt(sig./nd);
@@ -268,6 +272,5 @@ for mnt = mnt_tick
     dat_rbar(:,im) = rbar_z;
     dat_nd(:,im) = nd_z;
     dat_sig(:,im) = sig_z;
-    end
 end
 end
