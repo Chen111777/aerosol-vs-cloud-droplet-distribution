@@ -51,7 +51,7 @@ end
 eps_predict_pic=epsilon_expression(x_opt,rbar_predict_pic);
 
 func_pic_errorbar_and_plot(rbar_m,eps_m,rbar_e,eps_e,...
-    rbar_predict_pic,eps_predict_pic,1,'¦Å','linear')
+    rbar_predict_pic,eps_predict_pic,1,'Â¦Ã…','linear')
 eps_predict=epsilon_expression(x_opt,rbar);
 eps_predict=eps_predict(:);
 eps_predict(isnan(eps_predict))=[];
@@ -78,8 +78,8 @@ r2=r2(1,2)
 text(3.329,3.045,0,{['R^2=',num2str(r2,'%.2f')];['RMSE=',num2str(rms,'%.2f')]},...
     'FontName','Times New Roman','fontsize',13)
 xlim([3,25])
-legend({'0.0<AF¡Ü0.4, Predicted';'0.0<AF¡Ü0.4, LES data';'0.4<AF¡Ü0.7, Predicted';'0.4<AF¡Ü0.7, LES data';...
-    '0.7<AF¡Ü1.0, Predicted';'0.7<AF¡Ü1.0, LES data'},...
+legend({'0.0<AFÂ¡Ãœ0.4, Predicted';'0.0<AFÂ¡Ãœ0.4, LES data';'0.4<AFÂ¡Ãœ0.7, Predicted';'0.4<AFÂ¡Ãœ0.7, LES data';...
+    '0.7<AFÂ¡Ãœ1.0, Predicted';'0.7<AFÂ¡Ãœ1.0, LES data'},...
     'box','off','position',[0.755,0.328,0.225,0.454],'FontSize',10)
 OutFigName = 'epsilon_sigma_predict';
 % print('-dpng',C,OutFigName,'-r450')
@@ -92,10 +92,10 @@ Y = repmat([0.2:0.02:0.8]',1,b);
 E1 = x_opt(5)^4./X.^4*x_opt(4)^2;
 E2 = Y.^2./4.*(1-x_opt(5)^2./X.^2).^2;
 Z=sqrt(E1+E2);
-func_pic_contour(X,Y,Z,1,'¦Å from Eq. 11')
+func_pic_contour(X,Y,Z,1,'Â¦Ã… from Eq. 11')
 func_pic_contour(X,Y,E1,2,'E_1 from Eq. 11')
 func_pic_contour(X,Y,E2,3,'E_2 from Eq. 11')
-func_pic_contour(X,Y,E1./Z.^2,4,'E_1/¦Å^2 from Eq. 11')
+func_pic_contour(X,Y,E1./Z.^2,4,'E_1/Â¦Ã…^2 from Eq. 11')
 func_pic_contour(X,Y,Z.*X,5,'\sigma from Eq. 12')
 OutFigName = 'theoretical_joint_distribution';
 % print('-dpng',B,OutFigName,'-r450')
