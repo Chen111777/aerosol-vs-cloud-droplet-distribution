@@ -1,53 +1,51 @@
 clear; clc
-% --------- change these ------------%
-paths = {'~/WRFV4.5.1/a50_exp3',...
-'~/WRFV4.5.1/a2000_exp3',...
-'~/WRFV4.5.1/a10000_exp3',...
-'~/WRFV4.5.1/a50000_exp3'};
-OutFileName = 'lwcad_exp3_a50_2000_10000_50000';
+paths = {'~/submit_v1_wrfrsl/a50_';...
+'~/submit_v1_wrfrsl/a100_';...
+'~/submit_v1_wrfrsl/a200_';...
+'~/submit_v1_wrfrsl/a500_';...
+'~/submit_v1_wrfrsl/a1000_';...
+'~/submit_v1_wrfrsl/a2000_';...
+'~/submit_v1_wrfrsl/a5000_';...
+'~/submit_v1_wrfrsl/a10000_';...
+'~/submit_v1_wrfrsl/a20000_';...
+'~/submit_v1_wrfrsl/a50000_'};
+expname = 'tke100';
+OutFileName = ['lwcad_',expname,'.mat'];
+mnt_interval = 3;
+mnt_tick = 75:mnt_interval:135; % time range
 
-n_na = length(paths);
+len_aer = length(paths);
 g=9.81;
-global m r a b varls zz
+global m r a b zz
 a=2.53E12;
 b=5.42E3;
 r = 2.^(1:1/3:35/3); % bin radius
 m = 4/3*pi.*r.*r.*r/10^9; % bin mass
-varls = []; % variable name of bin mixing ratio
-for ibin = 1:33
-    varls = [varls;['ff1i',num2str(ibin,'%02d')]];
-end
-fstpath = [cell2mat(paths(1)),'/wrfbin_d01_0001-01-01_01:54:00'];
+fstpath = [cell2mat(paths(1)),expname,'/wrfbin_d01_0001-01-01_01:54:00'];
 phb = double(ncread(fstpath,'PHB'));
 php = double(ncread(fstpath,'PH'));
-ph = phb+php; % because ph merely varies with time
+ph = phb+php; % because ph merely varies with time and aerosol
 [nx,~,nz]=size(ph);
 nz=nz-1;
 zz = squeeze(mean(mean((ph(:,:,1:end-1)+ph(:,:,2:end))/2/g/1000,1),2));
 clear phb php ph
-mnt_range = 72:6:132; % time range
-nbins = 33;
 %% save lwcad 
- nmnt = length(mnt_range);
- lwcad = nan(nz,nmnt,n_na);
- for ia=1:n_na
+ nmnt = length(mnt_tick);
+ lwcad = nan(nz,nmnt,len_aer);
+ for ia=1:len_aer
      ia
  ii = 0;
- for im = mnt_range
+ for im = mnt_tick
      ii = ii+1;
-     pathbin = [cell2mat(paths(ia)),'/wrfbin_d01_0001-01-01_0',...
+     ncfile = [cell2mat(paths(ia)),expname,'/wrfbin_d01_0001-01-01_0',...
        num2str(floor(im/60),'%01d'),':',num2str(mod(im,60),'%02d'),':00'];
-     pp = double(ncread(pathbin,'P'));
-     pb = double(ncread(pathbin,'PB'));
+     pp = double(ncread(ncfile,'P'));
+     pb = double(ncread(ncfile,'PB'));
      P = pp+pb;
-     TH=double(ncread(pathbin,'T'))+300;
+     TH=double(ncread(ncfile,'T'))+300;
      T=TH.*(P./10^5).^0.286;
-     qc = zeros(nx,nx,nz);
-     for ibin=1:nbins
-         q=double(ncread(pathbin,varls(ibin,:)));
-         qc = qc+q;
-     end
-     rho = 1./double(ncread(pathbin,'ALT'));
+     qc = double(ncread(ncfile,'QCLOUD'));
+     rho = 1./double(ncread(ncfile,'ALT'));
      lwc = rho.*qc;
      lwc(qc<10^-5) = 0;
      lwcad(:,ii,ia) = func_inputs_for_LWCad(lwc,P,T);
