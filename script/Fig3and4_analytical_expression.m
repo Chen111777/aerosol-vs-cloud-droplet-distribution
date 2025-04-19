@@ -2,8 +2,8 @@ clear; clc; close all
 global x_opt
 aer_tick= [50,100,200,500,1000,2000,5000,10000,20000,50000];
 len_aer = length(aer_tick);
-mnt_interval = 3;
-mnt_tick = 75:mnt_interval:135;
+mnt_interval = 4;
+mnt_tick = 50:mnt_interval:135;
 nmnt = length(mnt_tick);
 nregion=3;
 expname = 'tke100';
@@ -49,7 +49,7 @@ end
 eps_predict_pic=epsilon_expression(x_opt,rbar_predict_pic);
 
 func_pic_errorbar_and_plot(rbar_m,eps_m,rbar_e,eps_e,...
-    rbar_predict_pic,eps_predict_pic,'¦Å','linear')
+    rbar_predict_pic,eps_predict_pic,'  ','linear')
 set(gca,'position',[0.168,0.16,0.73,0.631397849462366])
 eps_predict=epsilon_expression(x_opt,rbar);
 eps_predict=eps_predict(:);
@@ -61,10 +61,10 @@ r2=corrcoef(eps_predict,eps_actual);
 r2=r2(1,2)
 text(16,0.305,{['R^2=',num2str(r2,'%.2f')];['RMSE=',num2str(rms,'%.2f')]},...
     'FontName','Times New Roman','fontsize',13)
-ylim([0.13,0.42])
+ylim([0.12,0.4])
 xlim([x_opt(5),25])
 
-OutFigName = 'epsilon_predict';
+% OutFigName = 'epsilon_predict';
 % print('-dpng',C,OutFigName,'-r450')
 %% fig.4
 % close all;
@@ -80,12 +80,12 @@ E2 = sig_s_over_mean_s.^2./4.*(1-x_opt(5)^2./X.^2).^2;
 % E1 = (xx.^2 + 2 .* zz .* xx .* (1-xx)) .* yy ./ (1 + 2 .* zz .* (1 - xx));
 % E2 = zz .* (1-xx) .^ 2 ./ (1 + 2 .* zz .* (1 - xx));
 dispersion=sqrt(E1+E2);
-func_pic_contour(X,sig_s_over_mean_s,dispersion,1,'¦Å')
+func_pic_contour(X,sig_s_over_mean_s,dispersion,1,'  ')
 func_pic_contour(X,sig_s_over_mean_s,E1,2,'E_1')
 func_pic_contour(X,sig_s_over_mean_s,E2,3,'E_2')
 func_pic_contour(X,sig_s_over_mean_s,dispersion.*X,4,'\sigma (\mu m)')
 OutFigName = 'theoretical_joint_distribution';
-% print('-dpng',B,OutFigName,'-r450')
+print('-dpng',B,OutFigName,'-r450')
 
 function f = objective_function(x)
 expname = 'tke100';
@@ -130,7 +130,7 @@ if strcmp(yscl,'log')
     set(gca,'ytick',1:20,'xtick',0:5:30)
 end
 xlabel('$\overline{r} (\mu$m)',para_xylbl{:})
-ylabel(ylb,para_xylbl{:})% »æÖÆÍ¼Àý
+ylabel(ylb,para_xylbl{:})%     Í¼  
 lgwd = {'0.0$<$AF$\le$0.4, Fit';'0.0$<$AF$\le$0.4, LES';'0.4$<$AF$\le$0.7, Fit';'0.4$<$AF$\le$0.7, LES';...
     '0.7$<$AF$\le$1.0, Fit';'0.7$<$AF$\le$1.0, LES'};
 legend(lgwd, ...
@@ -167,7 +167,7 @@ cb = colorbar;
 cb.FontSize = 7;
 v=axis;
 xlmt = v(1:2);
-dis_sm = [0.73,0.45,0.34];
+dis_sm = [0.717,0.438,0.324];
 hold on
 plot(xlmt,[dis_sm(1),dis_sm(1)],'--w','LineWidth',1.5)
 hold on
@@ -183,8 +183,8 @@ min_x = x_opt(5) * sqrt((2*x_opt(4)./min_y).^2+1);
 % end
 ytk = sort([ax.YTick,dis_sm]);
 set(gca,para_axis{:},'ytick',ytk,...
-    'YTickLabel',num2str(ytk','%.2f'),...
-    'position',pstn_list(i_p,:))
+    'position',pstn_list(i_p,:),...
+    'YTickLabel',num2str(ytk','%.2f'))
 text(0.0,1.10,['(',nbwd(i_p),')  ',txtwd],'units','normalized',...
         'FontSize',14,'FontWeight','bold','FontName','Times New Roman')
 box on
