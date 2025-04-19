@@ -1,30 +1,36 @@
 clear; clc; 
-paths = {'~/submit_v1_wrfrsl/a50_';...
-'~/submit_v1_wrfrsl/a100_';...
-'~/submit_v1_wrfrsl/a200_';...
-'~/submit_v1_wrfrsl/a500_';...
-'~/submit_v1_wrfrsl/a1000_';...
-'~/submit_v1_wrfrsl/a2000_';...
-'~/submit_v1_wrfrsl/a5000_';...
-'~/submit_v1_wrfrsl/a10000_';...
-'~/submit_v1_wrfrsl/a20000_';...
-'~/submit_v1_wrfrsl/a50000_'};
+paths = {'~/submit2_wrf4.5.1/a50_';...
+'~/submit2_wrf4.5.1/a100_';...
+'~/submit2_wrf4.5.1/a200_';...
+'~/submit2_wrf4.5.1/a500_';...
+'~/submit2_wrf4.5.1/a1000_';...
+'~/submit2_wrf4.5.1/a2000_';...
+'~/submit2_wrf4.5.1/a5000_';...
+'~/submit2_wrf4.5.1/a10000_';...
+'~/submit2_wrf4.5.1/a20000_';...
+'~/submit2_wrf4.5.1/a50000_'};
+% paths = {'~/submit2_wrf4.5.1/a50_';...
+% '~/submit2_wrf4.5.1/a1000_';...
+% '~/submit2_wrf4.5.1/a5000_';...
+% '~/submit2_wrf4.5.1/a50000_'};
 expname = 'tke100';
 lwcad_file = ['lwcad_',expname,'.mat'];
-InterFileName = ['SimulationDescription_',expname,'.mat'];
-mnt_interval = 1;
-mnt_tick = 0:mnt_interval:135;
-nmnt = length(mnt_tick);
+InterFileName = ['SimulationDescription_',expname,'_tke50.mat'];
+mnt_interval = 4;
+mnt_tick_small = 0:mnt_interval:134;
+nmnt = length(mnt_tick_small);
+mnt_tick1 = 50;
 len_aer = length(paths);
-nx=50; nz=80;
-% clmp = flipud(colormap('hot'));
+nx=50; 
+nz=80;
+selected_a=5;
+selected_mnt = 114;
 %%
 [largest_volume_ratio,cloud_coverage] = deal(nan(len_aer,nmnt));
-nbins = 33;
 for ia = 1:len_aer
     ia
 im = 0;
-for mnt = mnt_tick
+for mnt = mnt_tick_small
     im = im+1;
     ncfile = [cell2mat(paths(ia)),expname,'/wrfbin_d01_0001-01-01_0',...
         num2str(floor(mnt/60),'%01d'),':',num2str(mod(mnt,60),'%02d'),':00'];
@@ -39,8 +45,8 @@ for mnt = mnt_tick
 end
 end
 
-ia=5;
-ncfile = [cell2mat(paths(ia)),expname,'/wrfbin_d01_0001-01-01_01:57:00'];
+ncfile = [cell2mat(paths(selected_a)),expname,'/wrfbin_d01_0001-01-01_0',...
+        num2str(floor(selected_mnt/60),'%01d'),':',num2str(mod(selected_mnt,60),'%02d'),':00'];
 U=double(ncread(ncfile,'U'));
 V=double(ncread(ncfile,'V'));
 W=double(ncread(ncfile,'W'));
@@ -49,7 +55,7 @@ V=(V(:,2:end,:)+V(:,1:end-1,:))/2;
 W=(W(:,:,2:end)+W(:,:,1:end-1))/2;
 u_2d=squeeze(U(:,nx/2,:))';
 w_2d=squeeze(W(:,nx/2,:))';
-X=repmat(0.05:0.1:4.95,nz,1);
+X=repmat(2.5/nx:5/nx:5-2.5/nx,nz,1);
 ph = double(ncread(ncfile,'PHB'))+double(ncread(ncfile,'PH'));
 ph=(ph(:,:,2:end)+ph(:,:,1:end-1))/2;
 zz = squeeze(mean(mean(ph/9.81/1000))); % unit: km
@@ -59,12 +65,11 @@ rho=1/double(ncread(ncfile,'ALT'));% kg/m3, or 10^-6 kg/cm3
 qc=double(ncread(ncfile,'QCLOUD'));
 qc(qc<10^-5)=nan;
 lwc = qc.*rho;
-im = 120;
-idx_in_lwcad = (im-mnt_tick(1)+mnt_interval)/mnt_interval;
-af = lwc./repmat(permute(lwcad(:,idx_in_lwcad),[3,2,1]),nx,nx);
+idx_in_lwcad = (selected_mnt-mnt_tick1+mnt_interval)/mnt_interval;
+af = lwc./repmat(permute(lwcad(:,idx_in_lwcad,selected_a),[3,2,1]),nx,nx);
 af_2d = squeeze(af(:,nx/2,:))';
 save(InterFileName,...
-    'mnt_tick','cloud_coverage','largest_volume_ratio',...
+    'cloud_coverage','largest_volume_ratio',...
    'X','Z','af_2d','u_2d','w_2d')
 %%
 load(InterFileName)
@@ -81,9 +86,9 @@ largest_volume_ratio_time=mean(largest_volume_ratio);
 
 i_p = 4;
 subplot(2,3,i_p)
-plot(mnt_tick,cloud_fraction_time,'b','LineWidth',1.5)
+plot(mnt_tick_small,cloud_fraction_time,'b','LineWidth',1.5)
 v=axis;
-hold on; plot([75,75],v(3:4),'--k','LineWidth',1)
+hold on; plot([mnt_tick1,mnt_tick1],v(3:4),'--k','LineWidth',1)
 axis(v)
 xlabel('Time (min)')
 ylabel('Cloud Fraction')
@@ -100,10 +105,9 @@ title('(c)','fontsize',15,'unit','normalized','position',[-0.112,1.042,0])
 
 i_p = 5;
 subplot(2,3,i_p)
-plot(mnt_tick,largest_volume_ratio_time,'b','LineWidth',1.5)
+plot(mnt_tick_small,largest_volume_ratio_time,'b','LineWidth',1.5)
 v=axis;
-hold on; plot([75,75],v(3:4),'--k','LineWidth',1)
-% hold on; plot(minmax(mnt_tick),[0.94,0.94],'LineWidth',1)
+hold on; plot([mnt_tick1,mnt_tick1],v(3:4),'--k','LineWidth',1)
 xlabel('Time (min)')
 ylabel('Largest Volume Ratio')
 xlim([0,135])
@@ -124,7 +128,6 @@ cb = colorbar('units','normalized');
 cb.Label.String = 'AF';
 set(gca,'LineWidth',1,'FontName','Times New Roman',...
     'position',pst_list(i_p,:))
-% colormap(clmp); 
 title('(e)','fontsize',15,'unit','normalized','position',[-0.112,1.042,0])
 
 
@@ -143,7 +146,7 @@ qv = double(ncread(wrfin,'QVAPOR')); % (g/kg)
 qv = squeeze(qv(1,1,:));
 ax1 = gca;
 plot(T, height, 'r', 'LineWidth', 1.5);
-xlabel(ax1, 'Temperature (¡ãC)');
+xlabel(ax1, 'Temperature (  C)');
 ylabel(ax1, 'Altitude (km)');   
 ax1.XColor = 'r';  
 ax2 = axes('Position', ax1.Position, 'XAxisLocation', 'top', ...
@@ -182,20 +185,6 @@ set(gca,'LineWidth',1,'FontName','Times New Roman',...
     'position',pst_list(i_p,:),'xscale','log',...
     'xtick',[0.0001,0.001,0.01,0.1,1],'xminorgrid','off')
 title('(b)','fontsize',15,'unit','normalized','position',[-0.112,1.042,0])
-% sum(Z(1,:))
-% qnccn = double(ncread(wrfout,'QNCCN'));
-% qnccn(1,1,1)*rho(1,1,1)/10^6
-
-% i_p = 3;
-% subplot(2,3,i_p)
-% plot(sum(Z,2),height,'b','LineWidth',1.5)
-% xlabel('N_a (cm^-^3)')
-% ylabel('Altitude (km)')
-% grid('on')
-% set(gca,'LineWidth',1,'FontName','Times New Roman',...
-%     'position',pst_list(i_p,:),'xscale','log','xminorgrid','off')
-% title('(c)','fontsize',15,'unit','normalized','position',[-0.112,1.042,0])
-
 
 % print('-dpng',gcf,'SimulationDescription','-r450')
 
