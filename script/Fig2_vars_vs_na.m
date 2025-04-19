@@ -1,30 +1,28 @@
 clear; clc; close all
-paths = {'~/submit_v1_wrfrsl/a50_';...
-'~/submit_v1_wrfrsl/a500_';...
-'~/submit_v1_wrfrsl/a2000_';...
-'~/submit_v1_wrfrsl/a5000_';...
-'~/submit_v1_wrfrsl/a10000_';...
-'~/submit_v1_wrfrsl/a50000_'};
-% paths = {'~/submit_v1_wrfrsl/a50_';...
-% '~/submit_v1_wrfrsl/a100_';...
-% '~/submit_v1_wrfrsl/a200_';...
-% '~/submit_v1_wrfrsl/a500_';...
-% '~/submit_v1_wrfrsl/a1000_';...
-% '~/submit_v1_wrfrsl/a2000_';...
-% '~/submit_v1_wrfrsl/a5000_';...
-% '~/submit_v1_wrfrsl/a10000_';...
-% '~/submit_v1_wrfrsl/a20000_';...
-% '~/submit_v1_wrfrsl/a50000_'};
-aer_tick= [50,500,2000,5000,10000,50000]; % for fig. s1-2
+% paths = {'~/submit2_wrf4.5.1/a50_';...
+% '~/submit2_wrf4.5.1/a100_';...
+% '~/submit2_wrf4.5.1/a200_';...
+% '~/submit2_wrf4.5.1/a500_';...
+% '~/submit2_wrf4.5.1/a1000_';...
+% '~/submit2_wrf4.5.1/a2000_';...
+% '~/submit2_wrf4.5.1/a5000_';...
+% '~/submit2_wrf4.5.1/a10000_';...
+% '~/submit2_wrf4.5.1/a20000_';...
+% '~/submit2_wrf4.5.1/a50000_'};
+paths = {'~/submit2_wrf4.5.1/a50_';...
+'~/submit2_wrf4.5.1/a1000_';...
+'~/submit2_wrf4.5.1/a5000_';...
+'~/submit2_wrf4.5.1/a50000_'};
 % aer_tick= [50,100,200,500,1000,2000,5000,10000,20000,50000]; % for fig. 1
-aer_id = [1,4,6]; % for fig. s1-2
+aer_tick= [50,1000,5000,50000]; % for fig. S1 and S2
 % aer_id = [1,7,10]; % for fig. 1
+aer_id = [1,3,4]; % for fig. S1 and S2
 
 
 global af_lmt pstn_list expname
 expname = 'sma100';
-mnt_interval = 3;
-mnt_tick = 75:mnt_interval:135;
+mnt_interval = 4;
+mnt_tick = 50:mnt_interval:134;
 nmnt = length(mnt_tick);
 lwcad_file = ['lwcad_',expname,'.mat'];
 InterFileName = ['vars_vs_na_4p2_',expname,'.mat'];
@@ -62,7 +60,7 @@ for i_id=1:length(aer_id)
     xdat4(:,:,i_id)=dat_eps';
 end
 
-save(InterFileName,'ydat1','ydat2','ydat3','ydat4','xdat1','xdat2','xdat3','xdat4','zz')
+save(InterFileName,'ydat1','ydat2','ydat3','ydat4','xdat1','xdat2','xdat3','xdat4','zz','mnt_tick')
 %% Figure 2
 load(InterFileName)
 pstn_list = [0.120,0.805,0.310,0.160;
@@ -87,21 +85,24 @@ legend(lgwd,'fontsize',6.5,...
     'position',[0.690,0.805,0.201,0.071],'interpreter','latex')
 legend('boxoff')
 
-func_fig_shade(x_draw1, x_draw2, ydat2,4,'$N_{a}$(cm$^{-3}$)','$\overline{r} (\mu$m)')
+func_fig_shade(x_draw1, x_draw2, ydat2,4,'$N_{a}$(cm$^{-3}$)','$\overline{r} (\mu$m)');
 
-func_fig_shade(x_draw1, x_draw2, ydat3,6,'$N_{a}$(cm$^{-3}$)','$\sigma (\mu$m)')
+func_fig_shade(x_draw1, x_draw2, ydat3,6,'$N_{a}$(cm$^{-3}$)','$\sigma (\mu$m)');
 
-ax1 = func_fig_shade(x_draw1, x_draw2, ydat4,8,'$N_{a}$(cm$^{-3}$)','¦Å');
-set(ax1,'YLim',[0.14,0.4])
+ax1 = func_fig_shade(x_draw1, x_draw2, ydat4,8,'$N_{a}$(cm$^{-3}$)','  ');
+set(ax1,'YLim',[0.12,0.39])
 
 
 %-------------left column------------------%
 para_xylbl = {'FontSize',11.5,'interpreter','latex'};
 para_axis = {'linewidth',1,'FontName','Times New Roman',...
     'FontSize',9.3};
-xlb = {'$N_{c}$(cm$^{-3})$';'$\overline{r}(\mu$m)';'$\sigma(\mu$m)';'¦Å'};
+xlb = {'$N_{c}$(cm$^{-3})$';'$\overline{r}(\mu$m)';'$\sigma(\mu$m)';'  '};
 nbwd = 'abcdefghijklmn';
-LineStyleList = {'-','--',':'};
+% LineStyleList = {'-','--',':'};
+ColorList = [0, 0, 128;
+    70, 130, 180;
+    255, 0, 255]/255;
 icol = 1;
 for irow = 1:4
     i_p=icol+2*irow-2;
@@ -111,7 +112,7 @@ for irow = 1:4
        dati = squeeze(xdat(:,:,i_line));
        hold on;
 %        dati(:,sum(~isnan(dati))<=5)=nan;
-       h = plot(nanmean(dati),zz,'Color','k','LineStyle',cell2mat(LineStyleList(i_line)));
+       h = plot(nanmean(dati),zz,'Color','k','Color',ColorList(i_line,:));
        set(h,'Linewidth',1.5)
        clr = get(h,'color');
        hold on;
@@ -121,12 +122,12 @@ for irow = 1:4
            'm','FaceColor',clr,'FaceAlpha',0.15,...
            'EdgeColor','none','handlevisibility','off');
    end
-   set(ax,para_axis{:})
+   set(ax,para_axis{:},'ytick',0:0.5:5)
    ylabel('Altitude (km)',para_xylbl{:})
    xlabel(cell2mat(xlb(irow)),para_xylbl{:})
    box('on')
 %    grid('on')
-   ylim([0.7,3.5])
+   ylim([0.6,3.5])
    title(['(',nbwd(i_p),') '],'fontsize',15,...
        'units','normalized','position',[-0.204,1.006,0]);
    if i_p==1
@@ -135,10 +136,13 @@ for irow = 1:4
    if i_p == 5
        set(gca, 'xtick', 0:3:15, 'xlim', [0,13])
    end
+   if i_p==7
+       xlim([0.15,0.52])
+   end
 end
 lgwd = {'N_a=50';'N_a=5,000';'N_a=50,000'};
 legend(lgwd,...
-    'position',[0.163036716919839,0.411941112322792,0.178563283080161,0.062431842966194],...
+    'position',[0.190,0.656,0.178,0.062],...
     'units','normalized','FontSize',6.5)
 legend(ax,'boxoff')
 % print('-dpng',B,OutFigName,'-r450')
