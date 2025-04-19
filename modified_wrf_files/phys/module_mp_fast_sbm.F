@@ -4917,7 +4917,7 @@ enddo
               ffx_z(k,krr)=chem_new(i,k,j,kr)/rhocgs(i,k,j)
             end do
           end do
-          call FALFLUXHUCM_Z(ffx_z,VRX,RHOCGS_z,PCGS_z,ZCGS_z,DT,kts,kte,nkr)
+！          call FALFLUXHUCM_Z(ffx_z,VRX,RHOCGS_z,PCGS_z,ZCGS_z,DT,kts,kte,nkr)
           do k = kts,kte
             krr=0
             do kr=p_ff1i01,p_ff1i33
